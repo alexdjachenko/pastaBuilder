@@ -1,0 +1,82 @@
+---
+# stage
+- stage: e1
+  about: Описание этапа 1
+  steps:
+    - step: Имя шага может быть любым №1
+      about: Импорт данных из проекта
+      class: import
+      exclude:
+        - "obj/"
+    - step: Имя шага должно быть обязательнj №2
+      about: Этот шаг ничего не делает 
+      class: empty
+    - step: Это помогает от лени №3
+      about: Этот шаг ничего не делает, но отображает пути к кешу и срабатывает их автосоздание
+      class: helloworld
+  # Код этапа должен быть строкой из маленьких латинцей
+- stage: e2
+  steps: 
+    - step: Забираем результаты предыдущего шага, кроме файла .gitignore
+      class: copyfromstage
+      stagesrc: e1
+      # Кроме файла .gitignore
+      exclude:
+        - ".gitignore"
+    - step: 4
+      class: download
+      #url: https://www.opentechnology.ru/sites/default/files/sitefiles/b152clients_20161003.pdf
+      url: https://download.moodle.org/download.php/direct/langpack/4.1/ru.zip
+      # Архиватр none/zip/tar.gz
+      archive: zip
+      subfoldersrc: ru
+      subfolderdest: rrr
+    - step:
+      about: Описание шага 5
+      class: empty
+    - step:
+      about: Описание шага 6
+      class: empty
+- stage: e3
+  about: Описание этапа 3
+  steps:
+    - step: Забираем сборку из предыдущего этапа, кроме ряда исключений
+      class: copyfromstage
+      stagesrc: e2
+      exclude:
+        - "ooooo.txt"
+        - "act*.php"
+        - "uuuu*UUU.*"
+    - step: Скачиваем и распаковываем в корень tar.gz. 
+      class: download
+      url: https://github.com/hufrea/byedpi/releases/download/v0.15/byedpi-15-x86_64.tar.gz
+      archive: tar.gz
+      # Оставляем файлы, которые уже были в корне этапа
+      cleanunexisted: 0
+    - step: Скачиваем тот же файл, но не распаковываем, а просто кладем его в корень под другим именем
+      class: download
+      url: https://github.com/hufrea/byedpi/releases/download/v0.15/byedpi-15-x86_64.tar.gz
+      archive: none
+      subfolderdest: test.tar.gz
+    - step: Скачиваем еще раз и кладем в папку aaa/bbb
+      class: download
+      url: https://github.com/hufrea/byedpi/releases/download/v0.15/byedpi-15-x86_64.tar.gz
+      archive: none
+      subfolderdest: aaa/bbb/test.tar.gz
+    - step: Выпускаем релиз в виде папки
+      class: release
+    - step: Выпускаем релиз в виде zip-архива
+      class: release
+      archive: zip
+    - step:  Выпускаем релиз в виде zip-архива с суффиксом release
+      class: release
+      archive: zip
+      suffix: release
+    - step:  Выпускаем релиз в виде  архива tar.gz
+      class: release
+      archive: tar.gz
+    - step: Выпускаем релиз в виде архиве tar.gz с суффиксом release
+      class: release
+      archive: tar.gz
+      suffix: release
+
