@@ -1,0 +1,15 @@
+### Eclipse Workspace Patch 1.0
+#P pastaBuilder
+diff --git example/helloworld.php example/helloworld.php
+index 934ea51..a19c9dd 100644
+--- example/helloworld.php
++++ example/helloworld.php
+@@ -4,6 +4,6 @@
+         <title>PHP Test</title>
+     </head>
+     <body>
+-        <?php echo '<p>Hello World</p>'; ?>
++        <?php echo '<p>Good bye world!</p>'; ?>
+     </body>
+ </html>
+\ No newline at end of file

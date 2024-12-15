@@ -14,6 +14,11 @@
     - step: Это помогает от лени №3
       about: Этот шаг ничего не делает, но отображает пути к кешу и срабатывает их автосоздание
       class: helloworld
+    - step: Накладываем патч
+      class: patch
+      src: "p*.patch"
+      # Нужна, если патч накладывается не на всю папку этапа
+      # dest: ""
   # Код этапа должен быть строкой из маленьких латинцей
 - stage: e2
   steps: 
@@ -40,13 +45,11 @@
 - stage: e3
   about: Описание этапа 3
   steps:
-    - step: Забираем сборку из предыдущего этапа, кроме ряда исключений
+    - step: Забираем сборку из предыдущего этапа, кроме файлов с патчами
       class: copyfromstage
       stagesrc: e2
       exclude:
-        - "ooooo.txt"
-        - "act*.php"
-        - "uuuu*UUU.*"
+        - "p*.patch"
     - step: Скачиваем и распаковываем в корень tar.gz. 
       class: download
       url: https://github.com/hufrea/byedpi/releases/download/v0.15/byedpi-15-x86_64.tar.gz

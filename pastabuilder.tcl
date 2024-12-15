@@ -497,7 +497,7 @@ set dictBScript [::yaml::yaml2dict $strBScript]
         set strDowncloadCommand "curl -C - --location $url --output [$objKeeperPaths getTempPath]/download"
         puts "    $strDowncloadCommand"
         if {[catch {exec /bin/sh -c $strDowncloadCommand} msg]} {
-          puts "Результат выполнения: $msg."
+          puts "    Результат выполнения: $msg."
         }
         
         puts "    Скачено в [$objKeeperPaths getTempPath]/download"
@@ -527,7 +527,7 @@ set dictBScript [::yaml::yaml2dict $strBScript]
             puts "    $strUnpachCommand"
             # Исполнение команды и вывод результата
             if {[catch {exec /bin/sh -c "$strUnpachCommand" } msg]} {
-              puts "Результат выполнения: $msg."
+              puts "    Результат выполнения: $msg."
             }
             
             puts "    Сохранено [$objKeeperPaths getTempPath]/unarch"
@@ -545,7 +545,7 @@ set dictBScript [::yaml::yaml2dict $strBScript]
             puts "    $strUnpachCommand"
             # Исполнение команды и вывод результата
             if {[catch {exec /bin/sh -c "$strUnpachCommand" } msg]} {
-              puts "Результат выполнения: $msg."
+              puts "    Результат выполнения: $msg."
             }
             # Формируем путь к папке-получателю и сразу создаем ее
             set strDestPath "[$objKeeperPaths getPayloadPath $strSubFolgerDestPath]"
@@ -671,7 +671,7 @@ set dictBScript [::yaml::yaml2dict $strBScript]
             puts "    $strPackCommand"
             # Исполнение команды и вывод результата
             if {[catch {exec /bin/sh -c "$strPackCommand" } msg]} {
-              puts "Результат выполнения: $msg."
+              puts "    Результат выполнения: $msg."
             }
           }
 
@@ -682,7 +682,7 @@ set dictBScript [::yaml::yaml2dict $strBScript]
             puts "    $strPackCommand"
             # Исполнение команды и вывод результата
             if {[catch {exec /bin/sh -c "$strPackCommand" } msg]} {
-              puts "Результат выполнения: $msg."
+              puts "    Результат выполнения: $msg."
             } 
           }
           default {
@@ -762,6 +762,52 @@ set dictBScript [::yaml::yaml2dict $strBScript]
     }
 }
 
+
+# Класс для накладывания патчей на проект
+# Для создания патчей можно использовать
+# diff -Naru ./helloworld.php ./helloworld2.php > pfile01.patch
+# diff -crB ./f1/ ./f2/ > pfolder02.patch
+::oo::class create builderStep_patch {
+    superclass builderStep
+    method process {} {
+        # Инициализация переменных
+        # Словарь с параметрами шага из родительского класса
+        my variable dictStep
+        
+        puts "    Processing [dict get $dictStep class] step"
+        
+        # Получаем объект хранителя путей из родительского класса
+        my variable objKeeperPaths
+        
+        
+        # Формируем пути к патчам, с учетом маски
+        set strPatchPath "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"
+        set listPatchesPach [glob "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"]
+        
+        # Формируем путь к целевому объекту
+        set strSubDestPath ""
+        if {[dict exists $dictStep dest]} {
+          set strSubDestPath [dict get $dictStep dest]
+        }
+        
+        # Путь к файлу или папке, на которые нужно наложить патч
+        set strDestPath "[$objKeeperPaths getPayloadPath $strSubDestPath]"
+        
+        
+        
+        # Исполнение команды по списку патчей и вывод результата
+        foreach strPatchPath $listPatchesPach {
+          set strPatchCommand "(/usr/bin/patch --directory=$strDestPath < $strPatchPath )"        
+          puts "    $strPatchCommand"
+          if {[catch {exec /bin/sh -c "$strPatchCommand" } msg]} {
+            puts "    Результат выполнения: $msg."
+          }
+        }
+        
+         
+        
+    }
+}
 
 # Фабрика для создания объектов шагов по имени
 proc create_steps_handler {strStepName step objKeeperStepPaths} {
