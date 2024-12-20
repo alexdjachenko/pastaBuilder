@@ -9,4 +9,5 @@ cd "$SCRIPT_DIR" || exit
 # Теперь текущая папка — это папка скрипта
 echo "Текущая директория: $(pwd)"
 
-/usr/bin/tclsh ../pastabuilder.tcl
+#/usr/bin/tclsh ../pastabuilder.tcl "$@"
+/usr/bin/tclsh ../pastabuilder.tcl -code 0.0.1b

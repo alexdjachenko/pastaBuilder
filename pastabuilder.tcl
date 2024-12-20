@@ -14,7 +14,7 @@ set strBScriptPath "pastabuilder.yml"
 set strBScriptFormat "yaml"
 
 # Имя собираемого дистрибутива (без расширения)
-set strBCode "1.0.O"
+set strBCode "1.0.0"
 
 # Путь к временной папке для сборки (здесь и временные папки и кеши)
 # Формат пути 
@@ -57,7 +57,8 @@ set dictBScript [::yaml::yaml2dict $strBScript]
 # Отображаем для контроля (на этапе отладки)
 #puts $dictBScript
 
-
+# Подключаем пакет для обработки аргументов коммандной строки
+package require cmdline
 
 #############################################################
 # Библиотеки
@@ -824,6 +825,42 @@ proc create_steps_handler {strStepName step objKeeperStepPaths} {
 #############################################################
 # Исполнение
 #############################################################
+# Обрабатываем аргументы командной строки
+
+# Список допустимых аргументов коммандной строки
+set options {
+#    {code.arg "0.0.O"   "Code of builded version"}
+    {code.arg    "Code of builded version"}
+}
+
+# Подсказка
+set usage ": pastabuilder.sh \[options] filename ...\noptions:"
+
+try {
+  # Создаем объект cmdline и получаем из него массив $params с  обработанными аргументами коммандной строки
+  array set params [::cmdline::getoptions argv $options $usage]
+} trap {CMDLINE USAGE} {msg o} {
+  # Trap the usage signal, print the message, and exit the application.
+  # Note: Other errors are not caught and passed through to higher levels!
+  puts $msg
+  exit 1
+}
+ 
+# Получаем код версии из коммандной строки
+if {  [info exists params(code)] } {
+  if {[string length $params(code)] > 20 || ![regexp {^[\w\.\-]+$} $params(code)]} {
+        throw wrong_class_name "Error: the code must be no more than 20 characters and consist only of letters, numbers, periods, underscores and hyphens!"
+  }
+  
+  set strBCode $params(code)
+  puts "Code of version is: $strBCode"
+}
+
+
+# Имя собираемого дистрибутива (без расширения)
+
+
+
 # Обходим конфигурацию и выполняем сборку
 
 # Иницииализируем общий хранитель путей
@@ -844,4 +881,5 @@ foreach {stage} $dictBScript {
   $objStage process
   
 }
+
 
