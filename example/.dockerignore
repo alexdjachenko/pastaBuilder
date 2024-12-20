@@ -1,0 +1,9 @@
+.dockerignore
+.gitignore
+build-tclsh.sh
+build-docker.sh
+clean.sh
+compose.yml
+Dockerfile
+cache
+result

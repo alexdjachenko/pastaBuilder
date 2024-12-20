@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+
+  pastabuilder:
+    image: alexdjachenko/pastabuilder
+    deploy:
+      mode: replicated
+      replicas: 1
+
