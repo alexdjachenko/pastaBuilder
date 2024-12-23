@@ -615,7 +615,7 @@ package require cmdline
         set strSrcPath "[$objKeeperPaths getPayloadPath $strSubFolgerSrcPath $strCodeStageSrc]"
         
         # Базовый путь к получателю
-        set strDestPath "[$objKeeperPaths getPayloadPath]"
+        set strDestPath "[$objKeeperPaths getPayloadPath $strSubFolgerDestPath ]"
 
         # Копирование  в payload этапа
         puts "    Копирование результата из $strSrcPath в $strDestPath"
