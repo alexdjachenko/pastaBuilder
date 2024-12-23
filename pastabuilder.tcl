@@ -48,14 +48,6 @@ package require yaml
 # Чтобы не добавлять ::oo:: перед каждым оператором class и method
 # namespace import oo::*
 
-# Считываем содержимое файла в строку
-set strBScript [read [open $strBScriptPath]]
-
-# Конвертируем содержимое файла в массив
-set dictBScript [::yaml::yaml2dict $strBScript]
-
-# Отображаем для контроля (на этапе отладки)
-#puts $dictBScript
 
 # Подключаем пакет для обработки аргументов коммандной строки
 package require cmdline
@@ -845,7 +837,8 @@ try {
   puts $msg
   exit 1
 }
- 
+
+# Имя собираемого дистрибутива (без расширения) 
 # Получаем код версии из коммандной строки
 if {  [info exists params(code)] } {
   if {[string length $params(code)] > 20 || ![regexp {^[\w\.\-]+$} $params(code)]} {
@@ -857,13 +850,30 @@ if {  [info exists params(code)] } {
 }
 
 
-# Имя собираемого дистрибутива (без расширения)
+
+
+
+# Считываем конфигурацию
+puts "Load building script from: $strBScriptPath"
+
+# Считываем содержимое файла в строку
+set strBScript [read [open $strBScriptPath]]
+
+puts "Patse yaml building script"
+
+# Конвертируем содержимое файла в массив
+set dictBScript [::yaml::yaml2dict $strBScript]
+
+# Отображаем для контроля (на этапе отладки)
+#puts $dictBScript
 
 
 
 # Обходим конфигурацию и выполняем сборку
 
+
 # Иницииализируем общий хранитель путей
+puts "Begin building"
 set objKeeperPaths [keeperPaths new $strBCachePath $strBResultPath $strBProjectPath $strBCode $strExcludeFile]
 
 
