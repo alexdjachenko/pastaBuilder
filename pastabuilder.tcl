@@ -56,6 +56,31 @@ package require cmdline
 # Библиотеки
 #############################################################
 
+# Функция для запуска команд и отображения результатов или ошибок
+proc runCommand {command} {
+    puts "Execute $command"
+    # Выполняем команду и сохраняем коды ошибки
+    set rc [catch {exec /bin/sh -c "$command"} msg]
+
+    # Если команда выполнена успешно, выводим результат
+    if { $rc == 0 } {
+        puts "Success execution:"
+        puts $msg
+    } else {
+        # Если ошибка, выводим сообщение об ошибке и завершаем выполнение
+        set errc $::errorCode
+        set erri $::errorInfo
+        puts "Failed execution:"
+        puts $msg
+        puts "rc: $rc"
+        puts "Error code: $errc"
+        puts "Error info: $erri"
+        #throw wrong_class_name "Error: external command returns non-zero error code!"
+        #exit 1
+    }
+}
+
+
 # Класс для работы с путями и папками
 ::oo::class create keeperPaths {
   # Базовые пути, относительно которых формируются все остальные
@@ -252,11 +277,13 @@ package require cmdline
     # Синхронизируем с удалением лишних файлов
     set strCopyCommand "/usr/bin/rsync -a $strExtOpts $strSrcPath $strDestPath"
     
-    puts $strCopyCommand
+    runCommand $strCopyCommand
+    #puts $strCopyCommand
     # Исполнение команды и вывод результата
-    if {[catch {exec /bin/sh -c "$strCopyCommand" } msg]} {
-      puts "Результат выполнения: $msg."
-    }
+    #if {[catch {exec /bin/sh -c "$strCopyCommand" } msg]} {
+    #  puts "Результат выполнения: $msg."
+    #  throw wrong_class_name "Error: external command returns non-zero error code!"
+    #}
   }
   
   # Служебный мето для генерации фрагмента rsync по списку для исключения файлов по шаблонов
@@ -488,10 +515,12 @@ package require cmdline
         
         # Скачиваем curl-ом
         set strDowncloadCommand "curl -C - --location $url --output [$objKeeperPaths getTempPath]/download"
-        puts "    $strDowncloadCommand"
-        if {[catch {exec /bin/sh -c $strDowncloadCommand} msg]} {
-          puts "    Результат выполнения: $msg."
-        }
+        runCommand  $strDowncloadCommand
+        #puts "    $strDowncloadCommand"
+        #if {[catch {exec /bin/sh -c $strDowncloadCommand} msg]} {
+        #  puts "    Результат выполнения: $msg."
+        #  throw wrong_class_name "Error: external command returns non-zero error code!"
+        #}
         
         puts "    Скачено в [$objKeeperPaths getTempPath]/download"
         
@@ -517,11 +546,13 @@ package require cmdline
             #zlib deflate
             # Пробую непосредственно через консоль
             set strUnpachCommand "unzip -u -o [$objKeeperPaths getTempPath]/download -d [$objKeeperPaths getTempPath unarch]"
-            puts "    $strUnpachCommand"
+            runCommand $strUnpachCommand
+            #puts "    $strUnpachCommand"
             # Исполнение команды и вывод результата
-            if {[catch {exec /bin/sh -c "$strUnpachCommand" } msg]} {
-              puts "    Результат выполнения: $msg."
-            }
+            #if {[catch {exec /bin/sh -c "$strUnpachCommand" } msg]} {
+            #  puts "    Результат выполнения: $msg."
+            #  throw wrong_class_name "Error: external command returns non-zero error code!"
+            #}
             
             puts "    Сохранено [$objKeeperPaths getTempPath]/unarch"
             # Формируем путь к папке-получателю и сразу создаем ее
@@ -535,11 +566,13 @@ package require cmdline
             #zlib deflate
             # Пробую непосредственно через консоль
             set strUnpachCommand "tar -xvzf [$objKeeperPaths getTempPath]/download -C [$objKeeperPaths getTempPath unarch]"
-            puts "    $strUnpachCommand"
+            runCommand $strUnpachCommand
+            #puts "    $strUnpachCommand"
             # Исполнение команды и вывод результата
-            if {[catch {exec /bin/sh -c "$strUnpachCommand" } msg]} {
-              puts "    Результат выполнения: $msg."
-            }
+            #if {[catch {exec /bin/sh -c "$strUnpachCommand" } msg]} {
+            #  puts "    Результат выполнения: $msg."
+            #  throw wrong_class_name "Error: external command returns non-zero error code!"
+            #}
             # Формируем путь к папке-получателю и сразу создаем ее
             set strDestPath "[$objKeeperPaths getPayloadPath $strSubFolgerDestPath]"
           }
@@ -661,22 +694,26 @@ package require cmdline
             #set strPackCommand "cd $strSrcPath && zip -r  $strDestPath  $strSrcPath/*"
             # --filesync - удалить из архива файлы, которые больше не присутвуют в шаге
             set strPackCommand "(cd $strSrcPath && zip --filesync -r  $strDestPath  .)"
-            puts "    $strPackCommand"
+            runCommand $strPackCommand
+            #puts "    $strPackCommand"
             # Исполнение команды и вывод результата
-            if {[catch {exec /bin/sh -c "$strPackCommand" } msg]} {
-              puts "    Результат выполнения: $msg."
-            }
+            #if {[catch {exec /bin/sh -c "$strPackCommand" } msg]} {
+            #  puts "    Результат выполнения: $msg."
+            #  throw wrong_class_name "Error: external command returns non-zero error code!"
+            #}
           }
 
           "tar.gz" {
             puts "    Распаковка tar.gz"
             set strDestPath "[$objKeeperPaths getBResultFilePath "tar.gz" $strSuffix]"
             set strPackCommand "(tar -czf  $strDestPath -C $strSrcPath .)"
-            puts "    $strPackCommand"
+            runCommand $strPackCommand
+            #puts "    $strPackCommand"
             # Исполнение команды и вывод результата
-            if {[catch {exec /bin/sh -c "$strPackCommand" } msg]} {
-              puts "    Результат выполнения: $msg."
-            } 
+            #if {[catch {exec /bin/sh -c "$strPackCommand" } msg]} {
+            #  puts "    Результат выполнения: $msg."
+            #  throw wrong_class_name "Error: external command returns non-zero error code!"
+            #} 
           }
           default {
             throw wrong_class_name "Error: [dict get $dictStep archive] isn't valid type of archivator!"
@@ -726,7 +763,7 @@ package require cmdline
         set strSrcPath "[$objKeeperPaths getProjectPath $strSubFolgerSrcPath]"
         
         # Базовый путь к получателю
-        set strDestPath "[$objKeeperPaths getPayloadPath]"
+        set strDestPath "[$objKeeperPaths getPayloadPath]/$strSubFolgerDestPath"
         
         # Исключаем папку кеша и результатов сборки, чтобы они никогда не попадали в проект
         # Чтобы избежать рекурсии
@@ -775,7 +812,7 @@ package require cmdline
         
         # Формируем пути к патчам, с учетом маски
         set strPatchPath "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"
-        set listPatchesPach [glob "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"]
+        set listPatchesPach [lsort [glob "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"]]
         
         # Формируем путь к целевому объекту
         set strSubDestPath ""
@@ -791,10 +828,12 @@ package require cmdline
         # Исполнение команды по списку патчей и вывод результата
         foreach strPatchPath $listPatchesPach {
           set strPatchCommand "(/usr/bin/patch --directory=$strDestPath < $strPatchPath )"        
-          puts "    $strPatchCommand"
-          if {[catch {exec /bin/sh -c "$strPatchCommand" } msg]} {
-            puts "    Результат выполнения: $msg."
-          }
+          runCommand $strPatchCommand
+          #puts "    $strPatchCommand"
+          #if {[catch {exec /bin/sh -c "$strPatchCommand" } msg]} {
+          #  puts "    Результат выполнения: $msg."
+          #  throw wrong_class_name "Error: external command returns non-zero error code!"
+          #}
         }
         
          
