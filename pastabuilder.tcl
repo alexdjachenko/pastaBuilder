@@ -882,8 +882,8 @@ try {
 # Имя собираемого дистрибутива (без расширения) 
 # Получаем код версии из коммандной строки
 if {  [info exists params(code)] } {
-  if {[string length $params(code)] > 20 || ![regexp {^[\w\.\-]+$} $params(code)]} {
-        throw wrong_class_name "Error: the code must be no more than 20 characters and consist only of letters, numbers, periods, underscores and hyphens!"
+  if {[string length $params(code)] > 250 || ![regexp {^[\w\.\-]+$} $params(code)]} {
+        throw wrong_class_name "Error: the code must be no more than 250 characters and consist only of letters, numbers, periods, underscores and hyphens!"
   }
   
   set strBCode $params(code)
