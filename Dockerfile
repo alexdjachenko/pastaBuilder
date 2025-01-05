@@ -37,6 +37,7 @@ RUN echo Build stage 1 \
                 curl \
                 wget \
                 rsync \
+                patch \
 # Ставим штатный tcl
                 tcl \
 # Стандартная библиотека для tcl
