@@ -827,7 +827,7 @@ proc runCommand {command} {
         
         # Исполнение команды по списку патчей и вывод результата
         foreach strPatchPath $listPatchesPach {
-          set strPatchCommand "(/usr/bin/patch --directory=$strDestPath < $strPatchPath )"        
+          set strPatchCommand "(/usr/bin/patch --batch -p0 --directory=$strDestPath -i $strPatchPath)"
           runCommand $strPatchCommand
           #puts "    $strPatchCommand"
           #if {[catch {exec /bin/sh -c "$strPatchCommand" } msg]} {
