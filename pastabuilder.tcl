@@ -75,8 +75,8 @@ proc runCommand {command} {
         puts "rc: $rc"
         puts "Error code: $errc"
         puts "Error info: $erri"
-        #throw wrong_class_name "Error: external command returns non-zero error code!"
-        #exit 1
+        throw wrong_class_name "Error: external command returns non-zero error!"
+        exit 1
     }
 }
 
@@ -514,7 +514,9 @@ proc runCommand {command} {
         #catch {puts [exec /bin/sh -c "curl -C - –location $url --output [$objKeeperPaths getTempPath]/download]" }
         
         # Скачиваем curl-ом
-        set strDowncloadCommand "curl -C - --location $url --output [$objKeeperPaths getTempPath]/download"
+        #set strDowncloadCommand "curl -C - --location $url --output [$objKeeperPaths getTempPath]/download"
+        set strDowncloadCommand "curl --fail --silent --show-error -z [$objKeeperPaths getTempPath]/download --location $url --output [$objKeeperPaths getTempPath]/download"
+        
         runCommand  $strDowncloadCommand
         #puts "    $strDowncloadCommand"
         #if {[catch {exec /bin/sh -c $strDowncloadCommand} msg]} {
@@ -545,7 +547,7 @@ proc runCommand {command} {
             # Позже стоит переделать на потоки https://core.tcl-lang.org/tips/doc/trunk/tip/234.md
             #zlib deflate
             # Пробую непосредственно через консоль
-            set strUnpachCommand "unzip -u -o [$objKeeperPaths getTempPath]/download -d [$objKeeperPaths getTempPath unarch]"
+            set strUnpachCommand "unzip -q -u -o [$objKeeperPaths getTempPath]/download -d [$objKeeperPaths getTempPath unarch]"
             runCommand $strUnpachCommand
             #puts "    $strUnpachCommand"
             # Исполнение команды и вывод результата
