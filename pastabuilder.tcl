@@ -814,7 +814,7 @@ proc runCommand {command} {
         
         # Формируем пути к патчам, с учетом маски
         set strPatchPath "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"
-        set listPatchesPach [lsort [glob "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"]]
+        set listPatchesPach [lsort [glob -nocomplain "[$objKeeperPaths getPayloadPath]/[dict get $dictStep src]"]]
         
         # Формируем путь к целевому объекту
         set strSubDestPath ""
