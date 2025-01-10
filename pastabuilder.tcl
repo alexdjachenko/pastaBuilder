@@ -918,12 +918,12 @@ proc runCommand {command} {
         
         if { [dict exists $dictStep version] } {
           set strVersion [dict get $dictStep version]
-          set strComposerCommand "composer -v --no-plugins --no-scripts --no-progress --ignore-platform-reqs create-project $strPackage $strSrcPath \"$strVersion\""
+          set strComposerCommand "composer -v --no-progress --ignore-platform-reqs --no-dev create-project $strPackage $strSrcPath \"$strVersion\""
           
           puts "    Скачивание пакета $strPackage \"$strVersion\" из composer:  в $strSrcPath"
           
         } else { 
-           set strComposerCommand "composer -v --no-plugins --no-scripts --no-progress --ignore-platform-reqs create-project $strPackage $strSrcPath"
+           set strComposerCommand "composer -v --no-progress --ignore-platform-reqs --no-dev create-project $strPackage $strSrcPath"
            
            puts "    Скачивание пакета $strPackage из composer:  в $strSrcPath"          
         }
