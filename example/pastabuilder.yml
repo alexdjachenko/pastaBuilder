@@ -37,16 +37,17 @@
       archive: zip
       subfoldersrc: ru
       subfolderdest: rrr
-
-    - step: Скачиваем пакет из composer без указания версии
-      class: composer_export
-      package: psr/log
       
     - step: Скачиваем пакет из composer c указанием версии
-      class: composer_export
+      class: composercp
       package: monolog/monolog
       version: "1.0.*"
       subfolderdest: composer
+      
+    - step: Скачиваем пакет из composer без указания версии
+      class: composercp
+      package: drupal/recommended-project
+      subfolderdest: drupal
 
 - stage: e3
   about: Описание этапа 3

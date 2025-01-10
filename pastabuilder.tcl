@@ -72,7 +72,8 @@ proc create_steps_handler {strStepName step objKeeperStepPaths} {
 proc runCommand {command} {
     puts "Execute $command"
     # Выполняем команду и сохраняем коды ошибки
-    set rc [catch {exec /bin/sh -c $command} msg]
+    # Без 2>&1 некоторые команды приводят к ошибке, т.к. любой вывод в консоль ошибок tcl считает неуспешным завершением
+    set rc [catch {exec /bin/sh -c "$command 2>&1"} msg]
 
     # Если команда выполнена успешно, выводим результат
     if { $rc == 0 } {
@@ -80,13 +81,26 @@ proc runCommand {command} {
         puts $msg:
     } else {
         # Если ошибка, выводим сообщение об ошибке и завершаем выполнение
-        set errc $::errorCode
-        set erri $::errorInfo
+        #set errc $::errorCode
+        #set erri $::errorInfo
         puts "Failed execution:"
         puts $msg
         puts "rc: $rc"
-        puts "Error code: $errc"
-        puts "Error info: $erri"
+        puts "Error code: $::errorCode"
+        puts "Error info: $::errorInfo"
+        #puts "Error code: $errc"
+        #puts "Error info: $erri"
+        
+        # Добавляем диагностику
+        if {[string match "CHILDSTATUS*" $::errorCode]} {
+            set status [lindex $::errorCode 2]
+            puts "Detected CHILDSTATUS: $status"
+        }
+        
+        puts "Environment variables:"
+        puts [array get ::env]
+        
+        # Принудительный выход
         throw wrong_class_name "Error: external command returns non-zero error!"
         exit 1
     }
@@ -707,7 +721,7 @@ proc runCommand {command} {
             set strDestPath "[$objKeeperPaths getBResultFilePath "zip" $strSuffix]"
             #set strPackCommand "cd $strSrcPath && zip -r  $strDestPath  $strSrcPath/*"
             # --filesync - удалить из архива файлы, которые больше не присутвуют в шаге
-            set strPackCommand "(cd $strSrcPath && zip --filesync -r  $strDestPath  .)"
+            set strPackCommand "(cd $strSrcPath && zip --filesync -r -q  $strDestPath  .)"
             runCommand $strPackCommand
             #puts "    $strPackCommand"
             # Исполнение команды и вывод результата
@@ -859,7 +873,7 @@ proc runCommand {command} {
 # Предполгает, что имя пакета всегда указано прямо
 # Для работы через composer.json нужна отдельная команда, которая будет работать сразу с payload этапа
 # Аналог php composer.phar create-project doctrine/orm path "2.2.*"
-::oo::class create builderStep_composer_export {
+::oo::class create builderStep_composercp {
     superclass builderStep
     method process {} {
         # Инициализация переменных

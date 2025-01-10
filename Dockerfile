@@ -78,7 +78,8 @@ RUN echo Build stage 1 \
 # Preparing folder for pastabuilder
 #    && echo 'end'
 
-ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_ROOT_VERSION="1.0.0"
 
 COPY pastabuilder.tcl /opt/pastabuilder/bin/pastabuilder.tcl
 
