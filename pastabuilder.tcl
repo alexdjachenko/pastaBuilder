@@ -56,16 +56,28 @@ package require cmdline
 # Библиотеки
 #############################################################
 
+# Фабрика для создания объектов шагов по имени
+proc create_steps_handler {strStepName step objKeeperStepPaths} {
+   # Очищаем строку и приводим к нижнему регистру
+   set strStepName [string tolower [string trim $strStepName]]
+   # Проверяем строку на отсутвие лишних символом
+   if { !([string is wordchar -strict $strStepName]) } {
+    throw wrong_class_name "Error: $strStepName is unvalidate!"
+   }
+   
+   return ["builderStep_$strStepName" new $step $objKeeperStepPaths]
+}
+
 # Функция для запуска команд и отображения результатов или ошибок
 proc runCommand {command} {
     puts "Execute $command"
     # Выполняем команду и сохраняем коды ошибки
-    set rc [catch {exec /bin/sh -c "$command"} msg]
+    set rc [catch {exec /bin/sh -c $command} msg]
 
     # Если команда выполнена успешно, выводим результат
     if { $rc == 0 } {
         puts "Success execution:"
-        puts $msg
+        puts $msg:
     } else {
         # Если ошибка, выводим сообщение об ошибке и завершаем выполнение
         set errc $::errorCode
@@ -843,17 +855,79 @@ proc runCommand {command} {
     }
 }
 
-# Фабрика для создания объектов шагов по имени
-proc create_steps_handler {strStepName step objKeeperStepPaths} {
-   # Очищаем строку и приводим к нижнему регистру
-   set strStepName [string tolower [string trim $strStepName]]
-   # Проверяем строку на отсутвие лишних символом
-   if { !([string is wordchar -strict $strStepName]) } {
-    throw wrong_class_name "Error: $strStepName is unvalidate!"
-   }
-   
-   return ["builderStep_$strStepName" new $step $objKeeperStepPaths]
+# Класс для получения файлов из composer.
+# Предполгает, что имя пакета всегда указано прямо
+# Для работы через composer.json нужна отдельная команда, которая будет работать сразу с payload этапа
+# Аналог php composer.phar create-project doctrine/orm path "2.2.*"
+::oo::class create builderStep_composer_export {
+    superclass builderStep
+    method process {} {
+        # Инициализация переменных
+        # Словарь с параметрами шага из родительского класса
+        my variable dictStep
+        
+        puts "    Processing [dict get $dictStep class] step"
+        
+        # Получаем объект хранителя путей из родительского класса
+        my variable objKeeperPaths
+        
+        # Получаем из настроек подпапки откуда и куда копировать данные
+        set strSubFolgerSrcPath ""
+        set strSubFolgerDestPath ""
+        if {[dict exists $dictStep subfoldersrc]} { 
+          set strSubFolgerSrcPath [dict get $dictStep subfoldersrc]
+        }
+        if {[dict exists $dictStep subfolderdest]} {
+          set strSubFolgerDestPath [dict get $dictStep subfolderdest]
+        }
+        
+        # Получаем из настроек флаг очистки получателя от лишних файлов
+        # по-умолчанию влючен
+        set flagDelete 1
+        if { [dict exists $dictStep cleanunexisted] } {
+          set flagDelete [dict get $dictStep cleanunexisted]
+        }
+        
+        # Путь к источнику по-умолчанию
+        # (переопределим для копирования одиночного файла)
+        set strSrcPath "[$objKeeperPaths getTempPath]/$strSubFolgerSrcPath"
+        
+        # Опреопределяем путь к папке назначения в payload этапа
+        set strDestPath "[$objKeeperPaths getPayloadPath $strSubFolgerDestPath]"
+
+        # Получаем параметры и формируем команду пооо бразцу
+        # php composer.phar create-project doctrine/orm path "2.2.*"
+        
+        # Получаем код из composer
+        # Обязательный параметр
+        set strPackage [dict get $dictStep package]
+        
+        if { [dict exists $dictStep version] } {
+          set strVersion [dict get $dictStep version]
+          set strComposerCommand "composer -v --no-plugins --no-scripts --no-progress --ignore-platform-reqs create-project $strPackage $strSrcPath \"$strVersion\""
+          
+          puts "    Скачивание пакета $strPackage \"$strVersion\" из composer:  в $strSrcPath"
+          
+        } else { 
+           set strComposerCommand "composer -v --no-plugins --no-scripts --no-progress --ignore-platform-reqs create-project $strPackage $strSrcPath"
+           
+           puts "    Скачивание пакета $strPackage из composer:  в $strSrcPath"          
+        }
+        
+        
+        
+        # Команда для запуска composer
+        runCommand  $strComposerCommand
+        
+        puts "    Загружено в $strDestPath"
+        
+
+        # Копирование  в payload этапа
+        $objKeeperPaths copyFiles $strSrcPath $strDestPath  $flagDelete
+    }
+    
 }
+
 
 #############################################################
 # Исполнение

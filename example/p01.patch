@@ -1,9 +1,9 @@
 ### Eclipse Workspace Patch 1.0
 #P pastaBuilder
-diff --git example/helloworld.php example/helloworld.php
+diff --git helloworld.php helloworld.php
 index 934ea51..a19c9dd 100644
---- example/helloworld.php
-+++ example/helloworld.php
+--- helloworld.php
++++ helloworld.php
 @@ -4,6 +4,6 @@
          <title>PHP Test</title>
      </head>

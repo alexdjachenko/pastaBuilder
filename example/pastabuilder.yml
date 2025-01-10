@@ -28,6 +28,7 @@
       # Кроме файла .gitignore
       exclude:
         - ".gitignore"
+
     - step: 4
       class: download
       #url: https://www.opentechnology.ru/sites/default/files/sitefiles/b152clients_20161003.pdf
@@ -36,12 +37,17 @@
       archive: zip
       subfoldersrc: ru
       subfolderdest: rrr
-    - step:
-      about: Описание шага 5
-      class: empty
-    - step:
-      about: Описание шага 6
-      class: empty
+
+    - step: Скачиваем пакет из composer без указания версии
+      class: composer_export
+      package: psr/log
+      
+    - step: Скачиваем пакет из composer c указанием версии
+      class: composer_export
+      package: monolog/monolog
+      version: "1.0.*"
+      subfolderdest: composer
+
 - stage: e3
   about: Описание этапа 3
   steps:

@@ -23,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 
 # Ставим базовые пакеты, необходимые для сборки
-# Позже, это тоже вынесим в отдельный пакет
+# Отделено в отдельный этап, чтобы лучше кешировалась сборка
 RUN echo Build stage 1 \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -46,25 +46,39 @@ RUN echo Build stage 1 \
                 tcl-tls \
 # Библиотеки, без которых не работает freewrap
                 libxft2 \
+# Для скачивания drupal и библиотек на php
+#                composer \
+# Поскольку composer-1 устарел, ставим php-cli и компосер с сайта разработчиков
+                 php-cli \
+                 php-curl \
 # Добавляем финальную строку без завершающего \, чтобы не забывать в остальных строках ее добавлять
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && echo 'end'
-
-# Устанавливаем дополнительные утилиты
-RUN echo Build stage 2 \
-# Preparing folder for pastabuilder
-    && mkdir -p --mode=o+x /opt/pastabuilder/bin \
-    && mkdir -p --mode=o+x /opt/pastabuilder/var/cache \
-    && mkdir -p --mode=o+x /opt/pastabuilder/var/result \
 # Installing freewrap
     && mkdir -p --mode=o+x /opt/freewrap \
     && cd /opt/freewrap \
     && wget https://sourceforge.net/projects/freewrap/files/freewrap/freeWrap%206.75/freewrap675.tar.gz/download --output-document=/opt/freewrap/freewrap675.tar.gz \
     && tar -xvzf freewrap675.tar.gz \
+    && mkdir -p --mode=o+x /opt/pastabuilder/bin \
+    && mkdir -p --mode=o+x /opt/pastabuilder/var/cache \
+    && mkdir -p --mode=o+x /opt/pastabuilder/var/result \
+# Для скачивания drupal и библиотек на php ставим свежий компосер
+    && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php -r "if (hash_file('sha384', 'composer-setup.php') === 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
+    && php composer-setup.php \
+    && php -r "unlink('composer-setup.php');" \
+    && mv composer.phar /usr/local/bin/composer \
+    && alias composer='/usr/local/bin/composer' \
     && echo 'end'
+
+# Второй этап установки пока не нужен
+#RUN echo Build stage 2 \
+# Preparing folder for pastabuilder
+#    && echo 'end'
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 COPY pastabuilder.tcl /opt/pastabuilder/bin/pastabuilder.tcl
 
