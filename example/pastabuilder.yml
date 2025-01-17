@@ -37,25 +37,35 @@
       archive: zip
       subfoldersrc: ru
       subfolderdest: rrr
-      
+
     - step: Скачиваем пакет из composer c указанием версии
-      class: composercp
-      package: monolog/monolog
-      version: "1.0.*"
-      subfolderdest: composer
-      
-    - step: Скачиваем пакет из composer без указания версии
-      class: composercp
-      package: drupal/recommended-project
-      subfolderdest: drupal
+      class: composer
+      do: create-project
+      package: monolog/monolog:1.0.*
+      subfolderdest: monolog
+     
       
     - step: Скачиваем пакет из composer без указания версии
       about: https://www.drupal.org/project/drupal/releases/11.0.0
-      class: composercp
+      class: composer
+      do: create-project
       package: drupal/recommended-project
-      version: "11.0.*"
-      subfolderdest: drupal11
+      subfolderdest: drupallast
 
+- stage: drupal
+  about: Собираем drupal
+  steps:
+    - step: Скачиваем пакет из composer версия 11.1.1
+      class: composer
+      do: create-project
+      package: drupal/recommended-project:11.1.1
+      
+    - step: Добавляем в пакет drush
+      class: composer
+      do: require
+      package: drush/drush
+      
+      
 - stage: e3
   about: Описание этапа 3
   steps:
@@ -64,6 +74,26 @@
       stagesrc: e2
       exclude:
         - "p*.patch"
+
+    - step: Копирум файлы drupal/htdocs
+      class: copyfromstage
+      stagesrc: drupal
+      subfoldersrc: web
+      subfolderdest: htdocs
+      
+    - step: Копирум файлы drupal/vendor
+      class: copyfromstage
+      stagesrc: drupal
+      subfoldersrc: vendor
+      subfolderdest: vendor
+
+    - step: Копирум файлы drupal/recipes
+      class: copyfromstage
+      stagesrc: drupal
+      subfoldersrc: recipes
+      subfolderdest: recipes
+      
+        
     - step: Скачиваем и распаковываем в корень tar.gz. 
       class: download
       url: https://github.com/hufrea/byedpi/releases/download/v0.15/byedpi-15-x86_64.tar.gz

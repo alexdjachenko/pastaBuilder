@@ -873,7 +873,7 @@ proc runCommand {command} {
 # Предполгает, что имя пакета всегда указано прямо
 # Для работы через composer.json нужна отдельная команда, которая будет работать сразу с payload этапа
 # Аналог php composer.phar create-project doctrine/orm path "2.2.*"
-::oo::class create builderStep_composercp {
+::oo::class create builderStep_composer {
     superclass builderStep
     method process {} {
         # Инициализация переменных
@@ -887,10 +887,10 @@ proc runCommand {command} {
         
         # Получаем из настроек подпапки откуда и куда копировать данные
         set strSubFolgerSrcPath ""
-        set strSubFolgerDestPath ""
         if {[dict exists $dictStep subfoldersrc]} { 
           set strSubFolgerSrcPath [dict get $dictStep subfoldersrc]
         }
+        set strSubFolgerDestPath ""
         if {[dict exists $dictStep subfolderdest]} {
           set strSubFolgerDestPath [dict get $dictStep subfolderdest]
         }
@@ -912,32 +912,72 @@ proc runCommand {command} {
         # Получаем параметры и формируем команду пооо бразцу
         # php composer.phar create-project doctrine/orm path "2.2.*"
         
-        # Получаем код из composer
-        # Обязательный параметр
-        set strPackage [dict get $dictStep package]
         
-        if { [dict exists $dictStep version] } {
-          set strVersion [dict get $dictStep version]
-          set strComposerCommand "composer -v --no-progress --ignore-platform-reqs --no-dev create-project $strPackage $strSrcPath \"$strVersion\""
+        
+        # Действие компосера
+        set strDo [dict get $dictStep do]
+        
+        # Запрашиваем дополнительные параметры и формируем команду, в зависимости от условий
+        puts "    Actiong $strDo with composer"
+        switch $strDo {
+          "create-project" {
+              # Обязательный параметр: имя пакета
+              set strPackage [dict get $dictStep package]
+              
+              # Формируем команду вызова composer
+              set strComposerCommand "composer -v --no-progress --no-interaction --ignore-platform-reqs --no-dev --profile create-project $strPackage $strSrcPath"
+              
+              # Выполняем команду для запуска composer
+              runCommand  $strComposerCommand
+              
+              # Копирование  в payload этапа
+              $objKeeperPaths copyFiles $strSrcPath $strDestPath  $flagDelete
+          }
           
-          puts "    Скачивание пакета $strPackage \"$strVersion\" из composer:  в $strSrcPath"
-          
-        } else { 
-           set strComposerCommand "composer -v --no-progress --ignore-platform-reqs --no-dev create-project $strPackage $strSrcPath"
-           
-           puts "    Скачивание пакета $strPackage из composer:  в $strSrcPath"          
+          "require" {
+            # Обязательный параметр: имя пакета
+            set strPackage [dict get $dictStep package]
+            
+            # Формируем команду вызова composer
+            # Сразу переходим в папку назначения в payload этапа и выполняем команду там
+            set strComposerCommand "cd  $strDestPath && "
+            append strComposerCommand "composer -v --no-progress --no-interaction --ignore-platform-reqs --update-no-dev --profile require $strPackage"
+            
+            # Выполняем команду для запуска composer
+            runCommand  $strComposerCommand
+          }
+          "install" {
+            
+            # Формируем команду вызова composer
+            # Сразу переходим в папку назначения в payload этапа и выполняем команду там
+            set strComposerCommand "cd  $strDestPath && "
+            append strComposerCommand "composer -v --no-progress --no-interaction --ignore-platform-reqs --no-dev --profile install"
+            
+            # Выполняем команду для запуска composer
+            runCommand  $strComposerCommand
+          }
+          "update" {
+            # Формируем команду вызова composer
+            # Сразу переходим в папку назначения в payload этапа и выполняем команду там
+            set strComposerCommand "cd  $strDestPath && "
+            append strComposerCommand "composer -v --no-progress --no-interaction --ignore-platform-reqs --no-dev --profile update"
+            
+            # Можем ограничить обновление только одним пакетом, или набором пакетов через пробел
+            if { [dict exists $dictStep package] }
+            {
+              append strComposerCommand " [dict get $dictStep package]"
+            }
+            
+            # Выполняем команду для запуска composer
+            runCommand  $strComposerCommand
+          }
+          default {
+            puts "    The action $myVar for composer doesn't defined!"
+            # Принудительный выход
+            throw wrong_class_name "Error: the action for composer doesn't defined!"
+            exit 1
+          }
         }
-        
-        
-        
-        # Команда для запуска composer
-        runCommand  $strComposerCommand
-        
-        puts "    Загружено в $strDestPath"
-        
-
-        # Копирование  в payload этапа
-        $objKeeperPaths copyFiles $strSrcPath $strDestPath  $flagDelete
     }
     
 }

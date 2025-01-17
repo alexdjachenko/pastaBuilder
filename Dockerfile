@@ -51,6 +51,10 @@ RUN echo Build stage 1 \
 # Поскольку composer-1 устарел, ставим php-cli и компосер с сайта разработчиков
                  php-cli \
                  php-curl \
+# NPM нужен для bower
+                 npm \
+# bower для соответвующего таска, собирающего js-зависимости
+    && npm install bower --location=global \
 # Добавляем финальную строку без завершающего \, чтобы не забывать в остальных строках ее добавлять
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
     && apt-get autoremove -y \
