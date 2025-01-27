@@ -52,6 +52,17 @@
       package: drupal/recommended-project
       subfolderdest: drupallast
 
+    - step: Делаем автозамену в файле composer.json
+      class: mapfile
+      filemask: composer.json
+      subfolderdest: drupallast
+      replacements:
+        - search: "web/"
+          replace: "htdocs/"
+        - search: "GPL-2.0-or-later"
+          replace: "GPL-2.0-or-later-aaa"
+          
+
 - stage: drupal
   about: Собираем drupal
   steps:
@@ -59,6 +70,17 @@
       class: composer
       do: create-project
       package: drupal/recommended-project:11.1.1
+
+    - step: Делаем автозамену в файле composer.json
+      class: mapfile
+      filemask: composer.json
+      replacements:
+        - search: "web/"
+          replace: "htdocs/"
+
+    - step: Скачиваем пакет из composer версия 11.1.1
+      class: composer
+      do: update
       
     - step: Добавляем в пакет drush
       class: composer

@@ -963,8 +963,7 @@ proc runCommand {command} {
             append strComposerCommand "composer -v --no-progress --no-interaction --ignore-platform-reqs --no-dev --profile update"
             
             # Можем ограничить обновление только одним пакетом, или набором пакетов через пробел
-            if { [dict exists $dictStep package] }
-            {
+            if { [dict exists $dictStep package] } {
               append strComposerCommand " [dict get $dictStep package]"
             }
             
@@ -982,6 +981,83 @@ proc runCommand {command} {
     
 }
 
+# Класс для автозамены по маске и списку значений
+# Операция выполняется прямо в хранилище этапа, а не операции
+::oo::class create builderStep_mapfile {
+    superclass builderStep
+    method process {} {
+        # Инициализация переменных
+        # Словарь с параметрами шага из родительского класса
+        my variable dictStep
+        
+        puts "    Processing [dict get $dictStep class] step"
+        
+        # Получаем объект хранителя путей из родительского класса
+        my variable objKeeperPaths
+        
+         # Инициализация данных из $dictStep
+        set listReplacements [dict get $dictStep replacements]
+        set strFileMask [dict get $dictStep filemask]
+        
+        
+        set strSubFolgerDestPath ""
+        if {[dict exists $dictStep subfolderdest]} {
+          set strSubFolgerDestPath [dict get $dictStep subfolderdest]
+        }
+        # Опреопределяем путь к папке назначения в payload этапа
+        set strDestPath "[$objKeeperPaths getPayloadPath]/$strSubFolgerDestPath"
+        
+        
+        # Проверяем, существует ли целевой  каталог
+        if {![file isdirectory $strDestPath]} {
+            puts "    Target directory $strDestPath does not exist!"
+            # Принудительный выход
+            throw wrong_class_name "Error: target directory $strDestPath does not exist!"
+            exit 1
+        }
+
+        # Получаем список файлов по маске
+        set files [glob -nocomplain -directory $strDestPath $strFileMask]
+        
+        if {[llength $files] == 0} {
+            puts "    No files found matching mask \"$fileMask\" in directory \"$strDestPath\""
+            return
+        }
+        
+        
+        set mapList {}
+        foreach entry $listReplacements {
+            lappend mapList [dict get $entry search] [dict get $entry replace]
+        }
+        
+        # Обрабатываем каждый файл
+        foreach strFile $files {
+          puts "    Processing file: $strFile"
+          
+          # Открываем файл для чтения
+          set input [open $strFile r]
+          set content [read $input]
+          close $input
+          
+          # Выполняем замену текста
+          set updated_content [string map $mapList $content]
+          
+          # Проверяем, были ли изменения
+          if {$content eq $updated_content} {
+              puts "     No changes made in \"$strFile\"."
+          }
+          
+          puts "     Write changes: to \"$strFile\"."
+          # Открываем файл для записи и сохраняем изменения
+          set output [open $strFile w]
+          puts $output $updated_content
+          close $output
+    
+        }
+        
+    }
+    
+}
 
 #############################################################
 # Исполнение
