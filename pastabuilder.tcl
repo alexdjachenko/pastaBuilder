@@ -863,9 +863,42 @@ proc runCommand {command} {
           #  throw wrong_class_name "Error: external command returns non-zero error code!"
           #}
         }
-        
-         
-        
+
+
+        if {[dict exists $dictStep listpatched]} {
+          set strListPatchedPath [dict get $dictStep listpatched]
+
+          # Инициализация списка для хранения путей затронутых файлов
+          set affectedFilePaths {}
+
+          foreach strPatchPath $listPatchesPach {
+            # Чтение содержимого патча
+            set fp [open $strPatchPath r]
+            set patchContent [read $fp]
+            close $fp
+            
+            # Поиск строк с путями файлов (обычно начинаются с --- или +++)
+            foreach line [split $patchContent "\n"] {
+                if {[regexp {^(---|\+\+\+) (.*?)\t} $line _ _ filepath]} {
+                    # Удаление начальных "./" и конечных пробелов
+                    set filepath [string trim [regsub {^\./} $filepath ""]]
+                    # Добавление в список уникальных путей
+                    if {$filepath != "" && $filepath ni $affectedFilePaths} {
+                        lappend affectedFilePaths $filepath
+                    }
+                }
+            }
+          }
+
+          # Сохранение списка затронутых файлов
+          set fp [open "[$objKeeperPaths getPayloadPath]/$strListPatchedPath" w]
+          foreach affectedFilePath $affectedFilePaths {
+            puts $fp "$affectedFilePath"
+          }
+          close $fp
+
+        }
+
     }
 }
 
